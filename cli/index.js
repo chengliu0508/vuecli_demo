@@ -4,19 +4,21 @@
 
 console.log('hello 666')
 
-const { program } = require('commander'); //
-const download = require('download-git-repo')
-const ora = require('ora')
-const chalk = require('chalk')
-const logSymbols = require('log-symbols')
+const { program } = require('commander'); //获取用户命令行
+const download = require('download-git-repo') //下载模版
+const inquirer = require('inquirer') //命令行交互
+const handlebars = require('handlebars') //填充模版
+const ora = require('ora') //下载中样式
+const chalk = require('chalk') //console.log的颜色
+const logSymbols = require('log-symbols') //特殊字符，例如对勾和叉叉
 
 const params = {
     'webpack': {
-        url: 'https://github.com/chengliu0508/demo#master',
+        url: 'https://github.com/chengliu0508/demo',
         descript: 'cli create webpack demo-name'
     },
     "gulp": {
-        url: 'https://github.com/chengliu0508/demo#master',
+        url: 'https://github.com/chengliu0508/demo',
         descript: 'cli create gulp demo-name'
     }
 }
@@ -41,7 +43,27 @@ program
                 return console.log(logSymbols.error, chalk.red('下载失败，失败原因：' + err));
             } else {
                 spinner.succeed();
-                return console.log(logSymbols.success, chalk.yellow('下载成功'));
+                console.log(logSymbols.success, chalk.yellow('下载成功'));
+
+                inquirer.prompt([{
+                            type: 'input',
+                            name: 'name',
+                            message: '输入项目名'
+                        }, {
+                            type: 'input',
+                            name: 'description',
+                            message: '输入项目描述'
+                        }
+
+                    ])
+                    .then(answers => {
+                        console.log(answers)
+                        const templatePath = './template.json'
+                        const content = fs.readFileSync(templatePath, 'utf-8')
+                        const result = handlebars.compile(content)(answers)
+                        fs.writeFileSync('./template-bundle.json', result)
+                    })
+                    //把项目下的template.json文件读取起来，把用户输入填充到模版里面
             }
         })
     });
